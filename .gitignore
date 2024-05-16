@@ -14,7 +14,7 @@ ckpt
 *.bin
 log.txt
 *_log
-*.log
+
 
 flagged/
 script/
@@ -28,5 +28,4 @@ results
 env
 lm_cache
 .idea
-*.log
 *.egg-info
