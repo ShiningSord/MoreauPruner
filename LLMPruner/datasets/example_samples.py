@@ -1,44 +1,57 @@
 import random
-import numpy as np
 import torch
 
 from datasets import load_dataset
-from torch.utils.data.dataset import Dataset
+
+
+def _concat_all_text(dataset, field_name):
+    """Join every entry under ``field_name`` into a single large string."""
+
+    return " ".join(dataset[field_name])
+
+
+def _sample_raw_patches(text, n_samples, seq_len, char_multiplier=8):
+    """Pick ``n_samples`` random substrings from ``text`` before tokenization."""
+
+    patch_len = seq_len * char_multiplier
+    if patch_len >= len(text):
+        patch_len = len(text) - 1
+    max_start = max(0, len(text) - patch_len - 1)
+    patches = []
+    for _ in range(n_samples):
+        start = random.randint(0, max_start)
+        patches.append(text[start : start + patch_len])
+    return patches
+
+
+def _tokenize_patches(patches, tokenizer, seq_len):
+    enc = tokenizer(
+        patches,
+        max_length=seq_len,
+        truncation=True,
+        padding="max_length",
+        return_tensors="pt",
+    )
+    return enc.input_ids
 
 def get_c4(tokenizer, n_samples, seq_len):
     traindata = load_dataset(
-        'allenai/c4', 'allenai--c4', data_files={'train': 'en/c4-train.00000-of-01024.json.gz'}, split='train'
+        "allenai/c4",
+        "allenai--c4",
+        data_files={"train": "en/c4-train.00000-of-01024.json.gz"},
+        split="train",
     )
-    
-    tokenized_samples, history = [], []
-    for _ in range(n_samples):
-        while True:
-            i = random.randint(0, len(traindata) - 1)
-            tokenized_sample = tokenizer(traindata[i]['text'], return_tensors='pt')
-            if tokenized_sample.input_ids.shape[1] >= seq_len and i not in history:
-                history.append(i)
-                break
-        i = random.randint(0, tokenized_sample.input_ids.shape[1] - seq_len )
-        tokenized_samples.append(tokenized_sample.input_ids[:, i:i+seq_len])
-    return torch.cat(tokenized_samples, dim=0)
+
+    text = _concat_all_text(traindata, "text")
+    patches = _sample_raw_patches(text, n_samples, seq_len)
+    return _tokenize_patches(patches, tokenizer, seq_len)
 
 def get_bookcorpus(tokenizer, n_samples, seq_len):
-    traindata = load_dataset(
-        'bookcorpus', split='train'
-    )
-    
-    tokenized_samples, history = [], []
-    for _ in range(n_samples):
-        while True:
-            import pdb; pdb.set_trace()
-            i = random.randint(0, len(traindata) - 1)
-            tokenized_sample = tokenizer(traindata[i]['text'], return_tensors='pt')
-            if tokenized_sample.input_ids.shape[1] >= seq_len and i not in history:
-                history.append(i)
-                break
-        i = random.randint(0, tokenized_sample.input_ids.shape[1] - seq_len)
-        tokenized_samples.append(tokenized_sample.input_ids[:, i:i+seq_len])
-    return torch.cat(tokenized_samples, dim=0 )
+    traindata = load_dataset("bookcorpus", split="train")
+
+    text = _concat_all_text(traindata, "text")
+    patches = _sample_raw_patches(text, n_samples, seq_len)
+    return _tokenize_patches(patches, tokenizer, seq_len)
 
 def get_wikipedia(tokenizer, n_samples, seq_len):
     """Load the first shard of the cleaned English Wikipedia from 2023-11-01."""
@@ -48,17 +61,9 @@ def get_wikipedia(tokenizer, n_samples, seq_len):
         split='train'
     )
 
-    tokenized_samples, history = [], []
-    for _ in range(n_samples):
-        while True:
-            i = random.randint(0, len(traindata) - 1)
-            tokenized_sample = tokenizer(traindata[i]['text'], return_tensors='pt')
-            if tokenized_sample.input_ids.shape[1] >= seq_len and i not in history:
-                history.append(i)
-                break
-        i = random.randint(0, tokenized_sample.input_ids.shape[1] - seq_len)
-        tokenized_samples.append(tokenized_sample.input_ids[:, i:i+seq_len])
-    return torch.cat(tokenized_samples, dim=0)
+    text = _concat_all_text(traindata, "text")
+    patches = _sample_raw_patches(text, n_samples, seq_len)
+    return _tokenize_patches(patches, tokenizer, seq_len)
 
 def get_slimpajama(tokenizer, n_samples, seq_len):
     """Load a shard from the SlimPajama dataset."""
@@ -68,17 +73,9 @@ def get_slimpajama(tokenizer, n_samples, seq_len):
         split='train'
     )
 
-    tokenized_samples, history = [], []
-    for _ in range(n_samples):
-        while True:
-            i = random.randint(0, len(traindata) - 1)
-            tokenized_sample = tokenizer(traindata[i]['text'], return_tensors='pt')
-            if tokenized_sample.input_ids.shape[1] >= seq_len and i not in history:
-                history.append(i)
-                break
-        i = random.randint(0, tokenized_sample.input_ids.shape[1] - seq_len)
-        tokenized_samples.append(tokenized_sample.input_ids[:, i:i+seq_len])
-    return torch.cat(tokenized_samples, dim=0)
+    text = _concat_all_text(traindata, "text")
+    patches = _sample_raw_patches(text, n_samples, seq_len)
+    return _tokenize_patches(patches, tokenizer, seq_len)
 
 def get_dclm(tokenizer, n_samples, seq_len):
     """Load a subset of the DCLM dataset used for DCLM-7B pre-training."""
@@ -88,17 +85,9 @@ def get_dclm(tokenizer, n_samples, seq_len):
         split='train'
     )
 
-    tokenized_samples, history = [], []
-    for _ in range(n_samples):
-        while True:
-            i = random.randint(0, len(traindata) - 1)
-            tokenized_sample = tokenizer(traindata[i]['text'], return_tensors='pt')
-            if tokenized_sample.input_ids.shape[1] >= seq_len and i not in history:
-                history.append(i)
-                break
-        i = random.randint(0, tokenized_sample.input_ids.shape[1] - seq_len)
-        tokenized_samples.append(tokenized_sample.input_ids[:, i:i+seq_len])
-    return torch.cat(tokenized_samples, dim=0)
+    text = _concat_all_text(traindata, "text")
+    patches = _sample_raw_patches(text, n_samples, seq_len)
+    return _tokenize_patches(patches, tokenizer, seq_len)
 
 def get_examples(dataset, tokenizer, n_samples, seq_len = 128):
     if dataset == 'c4':
