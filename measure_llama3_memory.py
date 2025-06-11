@@ -15,7 +15,6 @@ def instrument_model(model, records):
             def make_wrapped_forward(forward_fn, idx, name):
                 def wrapped_forward(*args, **kwargs):
                     torch.cuda.reset_peak_memory_stats()
-                    start_mem = torch.cuda.memory_allocated()
                     start_time = time.time()
                     output = forward_fn(*args, **kwargs)
                     torch.cuda.synchronize()
@@ -34,6 +33,60 @@ def instrument_model(model, records):
                 return wrapped_forward
 
             block.forward = make_wrapped_forward(original_forward, layer_idx, block_name)
+
+        # instrument q, k, v projections in attention
+        for proj_name in ["q_proj", "k_proj", "v_proj"]:
+            proj = getattr(layer.self_attn, proj_name)
+            original_forward = proj.forward
+
+            def make_wrapped_proj(forward_fn, idx, name):
+                def wrapped_forward(*args, **kwargs):
+                    torch.cuda.reset_peak_memory_stats()
+                    start_time = time.time()
+                    out = forward_fn(*args, **kwargs)
+                    torch.cuda.synchronize()
+                    end_time = time.time()
+                    peak_mem = torch.cuda.max_memory_allocated()
+                    records.append(
+                        {
+                            "layer": idx,
+                            "block": name,
+                            "peak_memory_mb": peak_mem / 1024 / 1024,
+                            "latency_s": end_time - start_time,
+                        }
+                    )
+                    return out
+
+                return wrapped_forward
+
+            proj.forward = make_wrapped_proj(original_forward, layer_idx, f"self_attn.{proj_name}")
+
+        # instrument up and down projections in MLP
+        for proj_name in ["up_proj", "down_proj"]:
+            proj = getattr(layer.mlp, proj_name)
+            original_forward = proj.forward
+
+            def make_wrapped_mlp_proj(forward_fn, idx, name):
+                def wrapped_forward(*args, **kwargs):
+                    torch.cuda.reset_peak_memory_stats()
+                    start_time = time.time()
+                    out = forward_fn(*args, **kwargs)
+                    torch.cuda.synchronize()
+                    end_time = time.time()
+                    peak_mem = torch.cuda.max_memory_allocated()
+                    records.append(
+                        {
+                            "layer": idx,
+                            "block": name,
+                            "peak_memory_mb": peak_mem / 1024 / 1024,
+                            "latency_s": end_time - start_time,
+                        }
+                    )
+                    return out
+
+                return wrapped_forward
+
+            proj.forward = make_wrapped_mlp_proj(original_forward, layer_idx, f"mlp.{proj_name}")
 
 
 def main():
