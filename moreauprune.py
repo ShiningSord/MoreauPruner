@@ -162,11 +162,11 @@ def main(args):
     
         cnt = 0
         if not args.moredata:
-            example_prompts = get_examples('bookcorpus', tokenizer, args.num_examples, seq_len = 64).to(args.device)
+            example_prompts = get_examples('bookcorpus', tokenizer, args.num_examples, seq_len = 2048).to(args.device)
         for i in range(args.iterative_steps):
             gc.collect()
             if args.moredata:
-                example_prompts = get_examples('bookcorpus', tokenizer, args.num_examples, seq_len = 64).to(args.device)
+                example_prompts = get_examples('bookcorpus', tokenizer, args.num_examples, seq_len = 2048).to(args.device)
             if pruner_type in ['taylor']:
                 logger.log("Start Backwarding in iterative steps = {}...".format(i))
                 model.zero_grad()  
@@ -363,7 +363,7 @@ if __name__ == "__main__":
     # argument for generation
     parser.add_argument('--temperature', type=float, default=1.0, help='temperature')
     parser.add_argument('--top_p', type=float, default=0.95, help='top p')
-    parser.add_argument('--max_seq_len', type=int, default=128, help='max sequence length')
+    parser.add_argument('--max_seq_len', type=int, default=1024, help='max sequence length')
 
     # argument for layer-wise pruning/column-wise pruning
     parser.add_argument('--channel_wise', action='store_true', help='channel wise')
