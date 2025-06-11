@@ -162,11 +162,11 @@ def main(args):
     
         cnt = 0
         if not args.moredata:
-            example_prompts = get_examples('bookcorpus', tokenizer, args.num_examples, seq_len = 2048).to(args.device)
+            example_prompts = get_examples(args.calib_dataset, tokenizer, args.num_examples, seq_len = 2048).to(args.device)
         for i in range(args.iterative_steps):
             gc.collect()
             if args.moredata:
-                example_prompts = get_examples('bookcorpus', tokenizer, args.num_examples, seq_len = 2048).to(args.device)
+                example_prompts = get_examples(args.calib_dataset, tokenizer, args.num_examples, seq_len = 2048).to(args.device)
             if pruner_type in ['taylor']:
                 logger.log("Start Backwarding in iterative steps = {}...".format(i))
                 model.zero_grad()  
@@ -276,7 +276,7 @@ def main(args):
         for i in range(args.iterative_steps):
 
             if pruner_type in ['taylor']:
-                example_prompts = get_examples('bookcorpus', tokenizer, 10, seq_len = 64)
+                example_prompts = get_examples(args.calib_dataset, tokenizer, 10, seq_len = 64)
                 logger.log("Start Backwarding in iterative steps = {}...".format(i))
                 loss = model(example_prompts, labels=example_prompts).loss
                 logger.log("Loss = {}".format(loss))
@@ -397,6 +397,9 @@ if __name__ == "__main__":
     parser.add_argument('--lr', type=float, default=0.1, help='learning rate')
     parser.add_argument('--soft', type=float, default=5e-3, help='soft threshold')
     parser.add_argument('--moredata', action='store_true', help='if usemoredata')
+    parser.add_argument('--calib_dataset', type=str, default='bookcorpus',
+                        choices=['bookcorpus', 'c4', 'wikipedia', 'slimpajama', 'dclm'],
+                        help='dataset used for calibration')
 
     args = parser.parse_args()
 
