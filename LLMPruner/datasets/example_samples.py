@@ -4,16 +4,17 @@ import torch
 from datasets import load_dataset
 
 
+
 def _concat_all_text(dataset, field_name):
     """Join every entry under ``field_name`` into a single large string."""
 
     return " ".join(dataset[field_name])
 
 
-def _sample_raw_patches(text, n_samples, seq_len, char_multiplier=8):
+def _sample_raw_patches(text, n_samples, seq_len):
     """Pick ``n_samples`` random substrings from ``text`` before tokenization."""
 
-    patch_len = seq_len * char_multiplier
+    patch_len = seq_len
     if patch_len >= len(text):
         patch_len = len(text) - 1
     max_start = max(0, len(text) - patch_len - 1)
@@ -42,6 +43,7 @@ def get_c4(tokenizer, n_samples, seq_len):
         split="train",
     )
 
+
     text = _concat_all_text(traindata, "text")
     patches = _sample_raw_patches(text, n_samples, seq_len)
     return _tokenize_patches(patches, tokenizer, seq_len)
@@ -53,6 +55,7 @@ def get_bookcorpus(tokenizer, n_samples, seq_len):
     patches = _sample_raw_patches(text, n_samples, seq_len)
     return _tokenize_patches(patches, tokenizer, seq_len)
 
+
 def get_wikipedia(tokenizer, n_samples, seq_len):
     """Load the first shard of the cleaned English Wikipedia from 2023-11-01."""
     traindata = load_dataset(
@@ -61,9 +64,11 @@ def get_wikipedia(tokenizer, n_samples, seq_len):
         split='train'
     )
 
+
     text = _concat_all_text(traindata, "text")
     patches = _sample_raw_patches(text, n_samples, seq_len)
     return _tokenize_patches(patches, tokenizer, seq_len)
+
 
 def get_slimpajama(tokenizer, n_samples, seq_len):
     """Load a shard from the SlimPajama dataset."""
@@ -73,9 +78,11 @@ def get_slimpajama(tokenizer, n_samples, seq_len):
         split='train'
     )
 
+
     text = _concat_all_text(traindata, "text")
     patches = _sample_raw_patches(text, n_samples, seq_len)
     return _tokenize_patches(patches, tokenizer, seq_len)
+
 
 def get_dclm(tokenizer, n_samples, seq_len):
     """Load a subset of the DCLM dataset used for DCLM-7B pre-training."""
@@ -85,9 +92,11 @@ def get_dclm(tokenizer, n_samples, seq_len):
         split='train'
     )
 
+
     text = _concat_all_text(traindata, "text")
     patches = _sample_raw_patches(text, n_samples, seq_len)
     return _tokenize_patches(patches, tokenizer, seq_len)
+
 
 def get_examples(dataset, tokenizer, n_samples, seq_len = 128):
     if dataset == 'c4':
