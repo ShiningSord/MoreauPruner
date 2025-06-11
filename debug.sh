@@ -1,0 +1,1 @@
+srun --qos debug -p debug --cpus-per-task=24 --gres=gpu:2 --constraint=3090 bash ${1}

@@ -30,6 +30,7 @@ def get_bookcorpus(tokenizer, n_samples, seq_len):
     tokenized_samples, history = [], []
     for _ in range(n_samples):
         while True:
+            import pdb; pdb.set_trace()
             i = random.randint(0, len(traindata) - 1)
             tokenized_sample = tokenizer(traindata[i]['text'], return_tensors='pt')
             if tokenized_sample.input_ids.shape[1] >= seq_len and i not in history:

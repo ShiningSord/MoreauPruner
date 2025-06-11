@@ -100,13 +100,13 @@ def main():
     parser.add_argument(
         "--prompt",
         type=str,
-        default="Hello, how are you?",
+        default="Write a long story (more than 1000 words) regarding the ice and fire?",
         help="Prompt text",
     )
     parser.add_argument(
         "--max_tokens",
         type=int,
-        default=16,
+        default=64,
         help="Maximum generation tokens",
     )
     parser.add_argument(
@@ -119,7 +119,14 @@ def main():
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     tokenizer = AutoTokenizer.from_pretrained(args.model)
-    model = AutoModelForCausalLM.from_pretrained(args.model, low_cpu_mem_usage=True)
+
+    # Load the model in float16
+    model = AutoModelForCausalLM.from_pretrained(
+        args.model, 
+        low_cpu_mem_usage=True, 
+        torch_dtype=torch.float16    # <---- Enable half precision
+    )
+
     model.to(device)
     model.eval()
 
@@ -127,6 +134,8 @@ def main():
     instrument_model(model, records)
 
     inputs = tokenizer(args.prompt, return_tensors="pt").to(device)
+    # No need to convert input_ids to float16 (token ids should stay int)
+
     with torch.no_grad():
         model.generate(**inputs, max_new_tokens=args.max_tokens)
 
