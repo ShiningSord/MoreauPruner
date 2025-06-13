@@ -20,6 +20,13 @@ def get_ptb(seq_len, tokenizer):
     valdata = load_dataset('ptb_text_only', 'penn_treebank', split='validation')
     return traindata, valdata
 
+def get_alpaca(seq_len, tokenizer):
+    """Load the Alpaca dataset used for fine-tuning."""
+    traindata = load_dataset('yahma/alpaca-cleaned', split='train')
+    # The official dataset has no predefined validation split.  For perplexity
+    # evaluation we simply reuse the training data.
+    return traindata, traindata
+
 class IndexDataset(Dataset):
     def __init__(self, tensors):
         self.tensors = tensors
@@ -49,6 +56,9 @@ def get_loaders(name, tokenizer, seq_len=2048, batch_size = 8):
     if 'ptb' in name:
         train_data, test_data = get_ptb(seq_len, tokenizer)
         test_dataset = process_data(test_data, tokenizer, seq_len, 'sentence')
+    if 'alpaca' in name:
+        train_data, test_data = get_alpaca(seq_len, tokenizer)
+        test_dataset = process_data(test_data, tokenizer, seq_len, 'output')
 
     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
     return train_data, test_loader

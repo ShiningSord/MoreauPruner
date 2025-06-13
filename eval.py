@@ -56,7 +56,7 @@ def main(args):
     tokenizer.unk_token_id = 0
     model.eval()
 
-    ppl = PPLMetric(model, tokenizer, ['wikitext2', 'ptb'], 128, device="cuda")
+    ppl = PPLMetric(model, tokenizer, ['wikitext2', 'ptb', 'alpaca'], 128, device="cuda")
     print("PPL after pruning: {}".format(ppl))
     print("Memory Requirement: {} MiB\n".format(torch.cuda.memory_allocated()/1024/1024))
         

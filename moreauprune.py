@@ -82,7 +82,7 @@ def main(args):
                 result = tokenizer.decode(generation_output[0])
                 logger.log(result)
     
-        ppl = PPLMetric(model, tokenizer, ['wikitext2', 'ptb'], args.max_seq_len, device=args.device)
+        ppl = PPLMetric(model, tokenizer, ['wikitext2', 'ptb', 'alpaca'], args.max_seq_len, device=args.device)
         logger.log("PPL before pruning: {}".format(ppl))
 
     pruner_type = args.pruner_type.lower()
@@ -327,7 +327,7 @@ def main(args):
         
         logger.log("\n==================Finish================\n")
     
-    ppl = PPLMetric(model, tokenizer, ['wikitext2', 'ptb'], args.max_seq_len, device=args.eval_device)
+    ppl = PPLMetric(model, tokenizer, ['wikitext2', 'ptb', 'alpaca'], args.max_seq_len, device=args.eval_device)
     logger.log("PPL after pruning: {}".format(ppl))
     logger.log("Memory Requirement: {} MiB\n".format(torch.cuda.memory_allocated()/1024/1024))
 
