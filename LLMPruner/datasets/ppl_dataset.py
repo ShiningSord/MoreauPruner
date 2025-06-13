@@ -22,7 +22,8 @@ def get_ptb(seq_len, tokenizer):
 
 def get_alpaca(seq_len, tokenizer):
     """Load the Alpaca dataset used for fine-tuning."""
-    traindata = load_dataset('yahma/alpaca-cleaned', split='train')
+    traindata = load_dataset('yahma/alpaca-cleaned', split='train').select(range(10000))
+
     # The official dataset has no predefined validation split.  For perplexity
     # evaluation we simply reuse the training data.
     return traindata, traindata

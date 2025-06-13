@@ -6,6 +6,7 @@ import argparse
 import torch
 import numpy as np
 from transformers import LlamaTokenizer
+from transformers import AutoTokenizer, AutoModelForCausalLM
 from LLMPruner.models.hf_llama.modeling_llama import LlamaForCausalLM
 
 from LLMPruner.utils.logger import LoggerWithDepth
@@ -51,11 +52,11 @@ def main(args):
         root_dir='prune_log',
         setup_sublogger=True
     )
-
-    tokenizer = LlamaTokenizer.from_pretrained(args.base_model)
-    model = LlamaForCausalLM.from_pretrained(
-        args.base_model,
-        low_cpu_mem_usage=True if args.torch_version >=1.9 else False
+    tokenizer = AutoTokenizer.from_pretrained(args.base_model,trust_remote_code=True)
+    model = AutoModelForCausalLM.from_pretrained(
+        args.base_model, 
+        torch_dtype=torch.float16, 
+        low_cpu_mem_usage=True,
     )
     if args.device != "cpu":
         model.half()

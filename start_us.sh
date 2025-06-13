@@ -1,17 +1,21 @@
 #!/bin/bash
 
-#SBATCH --job-name=slimpajama_us
+#SBATCH --job-name=wikipedia_us
 #SBATCH --mail-user=zixiaowang97@qq.com
-#SBATCH --output=logs/slimpajama_us.log
+#SBATCH --output=logs/wikipedia_us.log
 #SBATCH --mail-type=ALL
 #SBATCH --cpus-per-task=24
 #SBATCH --gres=gpu:1
 #SBATCH --constraint=3090
-#SBATCH --exclude=proj[77,192,194,203,199]
+#SBATCH --exclude=proj[77,192,194,203,199,198,202,197]
 
 # base_model=baffo32/decapoda-research-llama-7B-hf
-apple/DCLM-7B
-calib_dataset=slimpajama
+base_model=apple/DCLM-7B
+# calib_dataset=bookcorpus
+# calib_dataset=c4
+calib_dataset=wikipedia
+# calib_dataset=slimpajama
+# calib_dataset=dclm
 
 for seed in {1..1}; do
     run_name="${calib_dataset}_us_seed${seed}"
@@ -29,7 +33,7 @@ for seed in {1..1}; do
         --num_examples 4 \
         --save_ckpt_log_name ${run_name} \
         --moredata \
-        --max_seq_len 128 \
+        --max_seq_len 1024 \
         --pruner_type taylor \
         --taylor param_first \
         --save_model \
@@ -43,5 +47,5 @@ for seed in {1..1}; do
         --seed ${seed} \
         --calib_dataset ${calib_dataset}
 
-    CUDA_VISIBLE_DEVICES=0 bash scripts/evaluate_pretrain.sh ${base_model} prune_log/${run_name}
+    # CUDA_VISIBLE_DEVICES=0 bash scripts/evaluate_pretrain.sh ${base_model} prune_log/${run_name}
 done

@@ -1,19 +1,19 @@
 #!/bin/bash
 
-#SBATCH --job-name=slimpajama
+#SBATCH --job-name=bookcorpus
 #SBATCH --mail-user=zixiaowang97@qq.com
-#SBATCH --output=logs/slimpajama.log
+#SBATCH --output=logs/bookcorpus.log
 #SBATCH --mail-type=ALL
 #SBATCH --cpus-per-task=24
 #SBATCH --gres=gpu:1
 #SBATCH --constraint=3090
-#SBATCH --exclude=proj[77,192,194,203,199,198]
+#SBATCH --exclude=proj[77,192,194,203,199,198,202]
 
 base_model=baffo32/decapoda-research-llama-7B-hf
-# calib_dataset=bookcorpus
+calib_dataset=bookcorpus
 # calib_dataset=c4
 # calib_dataset=wikipedia
-calib_dataset=slimpajama
+# calib_dataset=slimpajama
 # calib_dataset=dclm
 
 
