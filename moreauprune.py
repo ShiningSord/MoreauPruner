@@ -1,17 +1,12 @@
-import os
+
 import gc
-import sys
-import time
-import json
-import copy
 import random
 import argparse
-from typing import Tuple
 
 import torch
 import numpy as np
-from transformers import LlamaTokenizer, GenerationConfig, LlamaConfig
-from LLMPruner.models.hf_llama.modeling_llama import LlamaForCausalLM, LlamaRMSNorm, LlamaAttention, LlamaMLP
+from transformers import LlamaTokenizer
+from LLMPruner.models.hf_llama.modeling_llama import LlamaForCausalLM, LlamaRMSNorm, LlamaAttention
 
 import LLMPruner.torch_pruning as tp 
 from LLMPruner.pruner import hf_llama_pruner as llama_pruner
@@ -145,19 +140,6 @@ def main(args):
         )
         model.zero_grad()
 
-       
-        # model_ref = LlamaForCausalLM.from_pretrained(
-        #     args.base_model,
-        #     low_cpu_mem_usage=True if args.torch_version >=1.9 else False
-        # )
-        # if args.device != "cpu":
-        #     model_ref.half()
-        # model_ref.to(args.device)
-        # for param in model_ref.parameters():
-        #     param.requires_grad_(False)
-        
-
-
         logger.log("Start Pruning")
     
         cnt = 0
@@ -191,8 +173,6 @@ def main(args):
                 loss.backward()
                 with torch.no_grad():
                     for pm in model.parameters():
-                        # if pm.shape != pm.delta.shape:
-                        #     import pdb; pdb.set_trace()
                         pm.data = pm.data - pm.delta - pm.noise
                         del pm.noise
                         pm.delta.data = (pm.delta- args.lr * pm.grad).data

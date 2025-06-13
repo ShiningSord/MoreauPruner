@@ -1,19 +1,23 @@
 #!/bin/bash
 
-#SBATCH --job-name=bookcorpus
+#SBATCH --job-name=slimpajama
 #SBATCH --mail-user=zixiaowang97@qq.com
-#SBATCH --output=logs/bookcorpus.log
+#SBATCH --output=logs/slimpajama.log
 #SBATCH --mail-type=ALL
 #SBATCH --cpus-per-task=24
 #SBATCH --gres=gpu:1
 #SBATCH --constraint=3090
-#SBATCH --exclude=proj[77,192]
+#SBATCH --exclude=proj[77,192,194,203,199]
 
 base_model=baffo32/decapoda-research-llama-7B-hf
-calib_dataset=bookcorpus
+# calib_dataset=bookcorpus
+# calib_dataset=c4
+# calib_dataset=wikipedia
+calib_dataset=slimpajama
+# calib_dataset=dclm
 
 
-for seed in {1..1}; do
+for seed in {1..10}; do
     run_name="${calib_dataset}_seed${seed}"
     echo "[RUN] pruning with seed ${seed} using ${calib_dataset}"
 
@@ -26,14 +30,16 @@ for seed in {1..1}; do
         --block_mlp_layer_end 30 \
         --block_attention_layer_start 4 \
         --block_attention_layer_end 30 \
-        --num_examples 1 \
+        --num_examples 4 \
         --save_ckpt_log_name ${run_name} \
+        --moredata \
+        --max_seq_len 128 \
         --pruner_type taylor \
         --taylor param_first \
         --save_model \
         --base_model ${base_model} \
         --test_after_train \
-        --iterative_steps 1 \
+        --iterative_steps 10 \
         --std 0.05 \
         --lamb 0.2 \
         --lr 0.0002 \

@@ -14,7 +14,7 @@ def _concat_all_text(dataset, field_name):
 def _sample_raw_patches(text, n_samples, seq_len):
     """Pick ``n_samples`` random substrings from ``text`` before tokenization."""
 
-    patch_len = seq_len
+    patch_len = seq_len * 8
     if patch_len >= len(text):
         patch_len = len(text) - 1
     max_start = max(0, len(text) - patch_len - 1)
@@ -26,32 +26,51 @@ def _sample_raw_patches(text, n_samples, seq_len):
 
 
 def _tokenize_patches(patches, tokenizer, seq_len):
-    enc = tokenizer(
-        patches,
-        max_length=seq_len,
-        truncation=True,
-        padding="max_length",
-        return_tensors="pt",
-    )
-    return enc.input_ids
+    tokenized_samples = []
+    for patch in patches:
+        enc = tokenizer(
+            patch,
+            max_length=seq_len,
+            truncation=True,
+            return_tensors="pt",
+        )
+
+        tokenized_samples.append(enc.input_ids)
+ 
+    return torch.cat(tokenized_samples, dim=0)
+    
 
 def get_c4(tokenizer, n_samples, seq_len):
-    traindata = load_dataset(
-        "allenai/c4",
-        "allenai--c4",
-        data_files={"train": "en/c4-train.00000-of-01024.json.gz"},
-        split="train",
-    )
+    dataset = load_dataset("c4", "en", split="train", streaming=True,trust_remote_code=True)
 
+    # Take just the first 10000 samples
+    small_subset = {}
+    small_subset['text'] = []
+    for i, sample in enumerate(dataset):
+        small_subset['text'].append(sample['text'])
+        if i >= 10000:
+            break
+ 
 
-    text = _concat_all_text(traindata, "text")
+    text = _concat_all_text(small_subset, "text")
     patches = _sample_raw_patches(text, n_samples, seq_len)
     return _tokenize_patches(patches, tokenizer, seq_len)
 
 def get_bookcorpus(tokenizer, n_samples, seq_len):
-    traindata = load_dataset("bookcorpus", split="train")
+    traindata = load_dataset("bookcorpus", split="train", streaming=True,trust_remote_code=True)
 
-    text = _concat_all_text(traindata, "text")
+    # Take just the first 10000 samples
+    small_subset = {}
+    small_subset['text'] = []
+    for i, sample in enumerate(traindata):
+        small_subset['text'].append(sample['text'])
+        if i >= 10000:
+            break
+ 
+
+    text = _concat_all_text(small_subset, "text")
+    
+    
     patches = _sample_raw_patches(text, n_samples, seq_len)
     return _tokenize_patches(patches, tokenizer, seq_len)
 
@@ -61,11 +80,22 @@ def get_wikipedia(tokenizer, n_samples, seq_len):
     traindata = load_dataset(
         'wikimedia/wikipedia',
         data_files={'train': '20231101.en/train-00000-of-00041.parquet'},
-        split='train'
+        split='train',
+        streaming=True,
+        trust_remote_code=True
     )
 
 
-    text = _concat_all_text(traindata, "text")
+    # Take just the first 10000 samples
+    small_subset = {}
+    small_subset['text'] = []
+    for i, sample in enumerate(traindata):
+        small_subset['text'].append(sample['text'])
+        if i >= 10000:
+            break
+ 
+
+    text = _concat_all_text(small_subset, "text")
     patches = _sample_raw_patches(text, n_samples, seq_len)
     return _tokenize_patches(patches, tokenizer, seq_len)
 
@@ -74,12 +104,23 @@ def get_slimpajama(tokenizer, n_samples, seq_len):
     """Load a shard from the SlimPajama dataset."""
     traindata = load_dataset(
         'DKYoon/SlimPajama-6B',
-        data_files={'train': 'data/train-00000-of-00052.parquet'},
-        split='train'
+        data_files={'train': 'data/train-00000-of-00048-ab2b35705f029d94.parquet'},
+        split='train',
+        streaming=True,
+        trust_remote_code=True
     )
 
 
-    text = _concat_all_text(traindata, "text")
+    # Take just the first 10000 samples
+    small_subset = {}
+    small_subset['text'] = []
+    for i, sample in enumerate(traindata):
+        small_subset['text'].append(sample['text'])
+        if i >= 10000:
+            break
+ 
+
+    text = _concat_all_text(small_subset, "text")
     patches = _sample_raw_patches(text, n_samples, seq_len)
     return _tokenize_patches(patches, tokenizer, seq_len)
 
@@ -89,11 +130,22 @@ def get_dclm(tokenizer, n_samples, seq_len):
     traindata = load_dataset(
         'coai/dclm-baseline-subset_100k',
         data_files={'train': 'data/train-00000-of-00002.parquet'},
-        split='train'
+        split='train',
+        streaming=True,
+        trust_remote_code=True
     )
 
 
-    text = _concat_all_text(traindata, "text")
+    # Take just the first 10000 samples
+    small_subset = {}
+    small_subset['text'] = []
+    for i, sample in enumerate(traindata):
+        small_subset['text'].append(sample['text'])
+        if i >= 10000:
+            break
+ 
+
+    text = _concat_all_text(small_subset, "text")
     patches = _sample_raw_patches(text, n_samples, seq_len)
     return _tokenize_patches(patches, tokenizer, seq_len)
 

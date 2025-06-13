@@ -87,7 +87,7 @@ def filter_and_sort_template(template, rules):
 rules = "{winogrande:acc; arc_easy:acc; boolq:acc; piqa:acc_norm; openbookqa:acc_norm; hellaswag:acc_norm; arc_challenge:acc_norm}"
 
 
-
+import numpy as np
 path = argv[1]
 ppl(path)
 output = extract_block(path)
@@ -96,7 +96,7 @@ for i in range(len(output)):
     output[i] = filter_and_sort_template(output[i],rules)
     extract(output[i])
     print("***********")
-   
+
 # Output the result to a new file or print it
 
 
