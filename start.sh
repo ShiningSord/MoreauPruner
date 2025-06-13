@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=24
 #SBATCH --gres=gpu:1
 #SBATCH --constraint=3090
-#SBATCH --exclude=proj[77,192,194,203,199]
+#SBATCH --exclude=proj[77,192,194,203,199,198]
 
 base_model=baffo32/decapoda-research-llama-7B-hf
 # calib_dataset=bookcorpus
@@ -22,7 +22,7 @@ for seed in {1..10}; do
     echo "[RUN] pruning with seed ${seed} using ${calib_dataset}"
 
     python moreauprune.py \
-        --pruning_ratio 0.25 \
+        --pruning_ratio 0.20 \
         --device cpu \
         --eval_device cuda \
         --block_wise \

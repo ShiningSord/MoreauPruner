@@ -9,22 +9,23 @@
 #SBATCH --constraint=3090
 #SBATCH --exclude=proj[77,192,194,203,199]
 
-base_model=baffo32/decapoda-research-llama-7B-hf
+# base_model=baffo32/decapoda-research-llama-7B-hf
+apple/DCLM-7B
 calib_dataset=slimpajama
 
-for seed in {1..10}; do
+for seed in {1..1}; do
     run_name="${calib_dataset}_us_seed${seed}"
     echo "[RUN] unstructured pruning with seed ${seed} using ${calib_dataset}"
 
     python moreaupruner_us.py \
-        --pruning_ratio 0.25 \
+        --pruning_ratio 0.2 \
         --device cpu \
         --eval_device cuda \
         --block_wise \
-        --block_mlp_layer_start 4 \
-        --block_mlp_layer_end 30 \
-        --block_attention_layer_start 4 \
-        --block_attention_layer_end 30 \
+        --block_mlp_layer_start 0 \
+        --block_mlp_layer_end 33 \
+        --block_attention_layer_start 0 \
+        --block_attention_layer_end 33 \
         --num_examples 4 \
         --save_ckpt_log_name ${run_name} \
         --moredata \
